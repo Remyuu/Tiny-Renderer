@@ -1,5 +1,8 @@
 //
-// Created by 张杰 on 2023/8/30.
+//  tgaimage.h
+//  Tiny-Renderer
+//
+//  Created by remoooo on 2023/8/30.
 //
 
 #ifndef __IMAGE_H__

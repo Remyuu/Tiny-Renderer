@@ -1,6 +1,10 @@
 //
-// Created by 张杰 on 2023/8/30.
+//  tgaimage.cpp
+//  Tiny-Renderer
 //
+//  Created by remoooo on 2023/8/30.
+//
+
 #include <iostream>
 #include <fstream>
 #include <string.h>
