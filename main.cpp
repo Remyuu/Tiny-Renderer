@@ -20,15 +20,14 @@ const int screenWidth  = 800;
 const int screenHeight = 800;
 
 void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
-    bool steep = std::abs(x0-x1)<std::abs(y0-y1);
-    if (x0>x1 || y0>y1) {
-        std::swap(x0, x1);
-        std::swap(y0, y1);
-    }
-    int dx = x1 - x0;
-    int dy = y1 - y0;
     int error2 = 0;
-    if(steep) { // “陡峭”线
+    if(std::abs(x0-x1)<std::abs(y0-y1)) { // “陡峭”线
+        if (y0>y1) {
+            std::swap(x0, x1);
+            std::swap(y0, y1);
+        }
+        int dx = x1 - x0;
+        int dy = y1 - y0;
         int dError2 = std::abs(dx) * 2;
         int x = x0;
         for (int y = y0; y <= y1; y++) {
@@ -40,6 +39,12 @@ void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
             }
         }
     }else { // “平缓”线
+        if (x0>x1) {
+            std::swap(x0, x1);
+            std::swap(y0, y1);
+        }
+        int dx = x1 - x0;
+        int dy = y1 - y0;
         int dError2 = std::abs(dy) * 2;
         int y = y0;
         for (int x = x0; x <= x1; x++) {
