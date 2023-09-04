@@ -9,13 +9,15 @@
 #include <cmath>
 #include "tgaimage.h"
 #include "geometry.h"
+#include "model.h"
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red   = TGAColor(255, 0,   0,   255);
 const TGAColor blue = TGAColor(0, 0, 255, 255);
 
-const int screenWidth  = 250;
-const int screenHeight = 250;
+Model *model = NULL;
+const int screenWidth  = 800;
+const int screenHeight = 800;
 
 void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
     int error2 = 0;
@@ -128,15 +130,42 @@ void triangleRaster(Vec2i v0, Vec2i v1, Vec2i v2, TGAImage &image, TGAColor colo
 
 
 int main(int argc, char** argv) {
+    const float halfWidth = screenWidth / 2.0f;
+    const float halfHeight = screenHeight / 2.0f;
+
     TGAImage image(screenWidth, screenHeight, TGAImage::RGB);
+    model = new Model("../object/african_head.obj");
 
-//    triangleLine(Vec2i(0,0),Vec2i(25,25),Vec2i(50,16),image,red);
+//    for (int i=0; i<model->nfaces(); i++) {
+//        std::vector<int> face = model->face(i);
+//        Vec2i screen_coords[3];
+//        for (int j=0; j<3; j++) {
+//            Vec3f world_coords = model->vert(face[j]);
+//            screen_coords[j] = Vec2i((world_coords.x+1.)*halfWidth, (world_coords.y+1.)*halfHeight);
+//        }
+//        triangleRaster(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(rand()%255, rand()%255, rand()%255, 255));
+//    }
+    Vec3f light_dir(0,0,-1); // define light_dir
 
-//    triangleRaster_2_1_3(Vec2i(10,10), Vec2i(100, 30), Vec2i(190, 160),image,red);
-
-    triangleRaster(Vec2i(10,10), Vec2i(100, 30), Vec2i(190, 160),image,red);
+    for (int i=0; i<model->nfaces(); i++) {
+        std::vector<int> face = model->face(i);
+        Vec2i screen_coords[3];
+        Vec3f world_coords[3];
+        for (int j=0; j<3; j++) {
+            Vec3f v = model->vert(face[j]);
+            screen_coords[j] = Vec2i((v.x+1.)*halfWidth, (v.y+1.)*halfHeight);
+            world_coords[j]  = v;
+        }
+        Vec3f n = (world_coords[2]-world_coords[0])^(world_coords[1]-world_coords[0]);
+        n.normalize();
+        float intensity = n*light_dir;
+        if (intensity>0) {
+            triangleRaster(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(intensity*255, intensity*255, intensity*255, 255));
+        }
+    }
 
     image.flip_vertically();
     image.write_tga_file("output.tga");
+    delete model;
     return 0;
 }
