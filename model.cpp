@@ -1,7 +1,3 @@
-//
-// Created by remoooo on 2023/8/31.
-//
-
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -21,7 +17,7 @@ Model::Model(const char *filename) : verts_(), faces_() {
         if (!line.compare(0, 2, "v ")) {
             iss >> trash;
             Vec3f v;
-            for (int i=0;i<3;i++) iss >> v.raw[i];
+            for (int i=0;i<3;i++) iss >> v[i];
             verts_.push_back(v);
         } else if (!line.compare(0, 2, "f ")) {
             std::vector<int> f;
@@ -55,4 +51,3 @@ std::vector<int> Model::face(int idx) {
 Vec3f Model::vert(int i) {
     return verts_[i];
 }
-
