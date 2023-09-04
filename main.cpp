@@ -54,7 +54,6 @@ void triangleRaster(Vec3f v0, Vec3f v1, Vec3f v2, float *zBuffer, TGAImage &imag
             Vec3f bc = barycentric(v0, v1, v2, pixel);// Screen Space
             if (bc.x<0 || bc.y<0 || bc.z<0 ) continue;
             // HIGHLIGHT: Finished The Z-Buffer
-            //image.set(pixel.x, pixel.y, color);
             pixel.z = 0;
             pixel.z = bc.x*v0.z+bc.y+v1.z+bc.z+v2.z;// 通过重心坐标插值计算当前Shading Point的深度值
             if(zBuffer[int(pixel.x+pixel.y*screenWidth)]<pixel.z) {
