@@ -16,7 +16,6 @@ struct Face {
 class Model {
 private:
     std::vector<Vec3f> verts_;
-//    std::vector< std::vector<int> > faces_;
     std::vector<Face> faces_;
     std::vector<Vec2f> texcoords_;
 public:
@@ -27,8 +26,6 @@ public:
     Vec3f vert(int i);
     Face face(int idx);
     Vec2f& getTexCoord(int index);
-
-    void debugPrint();
 };
 
 #endif //__MODEL_H__

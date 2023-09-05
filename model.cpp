@@ -25,20 +25,12 @@ Model::Model(const char *filename) : verts_(), faces_(), texcoords_(){
             for (int i = 0; i < 2; i++) iss >> tc[i];
             texcoords_.push_back(tc);
         } else if (!line.compare(0, 2, "f ")) {
-//            std::vector<int> f;
-//            int itrash, idx;
-//            iss >> trash;
-//            while (iss >> idx >> trash >> itrash >> trash >> itrash) {
-//                idx--; // in wavefront obj all indices start at 1, not zero
-//                f.push_back(idx);
-//            }
-//            faces_.push_back(f);
             Face face;
             int itrash, idx, texIdx;
             iss >> trash;
             while (iss >> idx >> trash >> texIdx >> trash >> itrash) {
-                idx--; // in wavefront obj all indices start at 1, not zero
-                texIdx--; // similarly for texture indices
+                idx--;
+                texIdx--;
                 face.vertexIndices.push_back(idx);
                 face.texcoordIndices.push_back(texIdx);
             }
@@ -58,10 +50,6 @@ int Model::nverts() {
 int Model::nfaces() {
     return (int)faces_.size();
 }
-
-//std::vector<int> Model::face(int idx) {
-//    return faces_[idx];
-//}
 
 Face Model::face(int idx) {
     return faces_[idx];
