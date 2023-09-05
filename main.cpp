@@ -17,6 +17,7 @@ const TGAColor red   = TGAColor(255, 0,   0,   255);
 const TGAColor blue = TGAColor(0, 0, 255, 255);
 
 Model *model = NULL;
+
 const int screenWidth  = 500;
 const int screenHeight = 500;
 
@@ -64,6 +65,53 @@ void triangleRaster(Vec3f v0, Vec3f v1, Vec3f v2, float *zBuffer, TGAImage &imag
     }
 }
 
+TGAColor getTextureColor(TGAImage &texture, float u, float v) {
+    // 纹理坐标限制在(0, 1)
+    u = std::max(0.0f, std::min(1.0f, u));
+    v = std::max(0.0f, std::min(1.0f, v));
+    // 将u, v坐标乘以纹理的宽度和高度，以获取纹理中的像素位置
+    int x = u * texture.get_width();
+    int y = v * texture.get_height();
+    // 从纹理中获取颜色
+    TGAColor color = texture.get(x, y);
+    // tga使用的是BGRA通道
+    return TGAColor(color[2],color[1],color[0], 255);
+}
+
+// 带贴图 - 光栅化三角形
+void triangleRasterWithTexture(Vec3f v0, Vec3f v1, Vec3f v2,
+                               Vec2f vt0, Vec2f vt1, Vec2f vt2,// 纹理贴图
+                               float *zBuffer, TGAImage &image,
+                               TGAImage &texture){
+    Vec3f* pts[] = {&v0, &v1, &v2};// Pack
+    // Find The Bounding Box
+    Vec2f boundingBoxMin( std::numeric_limits<float>::max(),  std::numeric_limits<float>::max());
+    Vec2f boundingBoxMax(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());
+    Vec2f clamp(image.get_width()-1, image.get_height()-1);
+    for (int i=0; i<3; i++) {
+        boundingBoxMin.x = std::max(0.f, std::min(boundingBoxMin.x, pts[i]->x));
+        boundingBoxMin.y = std::max(0.f, std::min(boundingBoxMin.y, pts[i]->y));
+        boundingBoxMax.x = std::min(clamp.x, std::max(boundingBoxMax.x, pts[i]->x));
+        boundingBoxMax.y = std::min(clamp.y, std::max(boundingBoxMax.y, pts[i]->y));
+    }
+    // For Loop To Iterate Over All Pixels Within The Bounding Box
+    Vec3f pixel;// 将深度值打包到pixel的z分量上
+    for (pixel.x = boundingBoxMin.x; pixel.x <= boundingBoxMax.x; pixel.x++) {
+        for (pixel.y = boundingBoxMin.y; pixel.y <= boundingBoxMax.y; pixel.y++) {
+            Vec3f bc = barycentric(v0, v1, v2, pixel);// Screen Space
+            if (bc.x<0 || bc.y<0 || bc.z<0 ) continue;
+            // HIGHLIGHT: Finished The Z-Buffer
+            pixel.z = 0;
+            pixel.z = bc.x*v0.z+bc.y+v1.z+bc.z*v2.z;// 通过重心坐标插值计算当前Shading Point的深度值
+            Vec2f uv = bc.x*vt0+bc.y*vt1+bc.z*vt2;
+            if(zBuffer[int(pixel.x+pixel.y*screenWidth)]<pixel.z) {
+                zBuffer[int(pixel.x + pixel.y * screenWidth)] = pixel.z;
+                image.set(pixel.x, pixel.y,getTextureColor(texture, uv.x, 1-uv.y));
+            }
+        }
+    }
+}
+
 Vec3f world2screen(Vec3f v) {
     return Vec3f(int((v.x+1.)*screenWidth/2.+.5), int((v.y+1.)*screenHeight/2.+.5), v.z);
 }
@@ -71,29 +119,33 @@ Vec3f world2screen(Vec3f v) {
 int main(int argc, char** argv) {
     TGAImage image(screenWidth, screenHeight, TGAImage::RGB);
     model = new Model("../object/african_head.obj");
+    TGAImage texture;
+    if(texture.read_tga_file("../object/african_head_diffuse.tga")){
+        std::cout << "Image successfully loaded!" << std::endl;
+        // 可以做一些图像处理
+    } else {
+        std::cerr << "Error loading the image." << std::endl;
+    }
 
     float *zBuffer = new float[screenWidth*screenHeight];
     for (int i=screenWidth*screenHeight; i--; zBuffer[i] = -std::numeric_limits<float>::max());
 
-    Vec3f light_dir(0,0,-1); // define light_dir
-
     for (int i=0; i<model->nfaces(); i++) {
-        std::vector<int> face = model->face(i);
+        Face face = model->face(i);
         Vec3f screen_coords[3], world_coords[3];
+        Vec2f tex_coords[3];
         for (int j=0; j<3; j++) {
-            world_coords[j]  = model->vert(face[j]);
+            world_coords[j]  = model->vert(face.vertexIndices[j]);
             screen_coords[j] = world2screen(world_coords[j]);
+            tex_coords[j] = model->getTexCoord(face.texcoordIndices[j]);
         }
-        Vec3f n = cross((world_coords[2]-world_coords[0]),(world_coords[1]-world_coords[0]));
-        n.normalize();
-        float intensity = n*light_dir;
-        if (intensity>0) {
-            triangleRaster(screen_coords[0], screen_coords[1], screen_coords[2], zBuffer, image,
-                           TGAColor(intensity*255, intensity*255, intensity*255, 255));
-        }
+        triangleRasterWithTexture(screen_coords[0], screen_coords[1], screen_coords[2],
+                                  tex_coords[0],tex_coords[1],tex_coords[2],
+                                  zBuffer, image, texture);
     }
     image.flip_vertically();
     image.write_tga_file("output.tga");
     delete model;
+    delete[] zBuffer;
     return 0;
 }
