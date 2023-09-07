@@ -14,10 +14,12 @@ int *zBuffer = NULL;
 Vec3f light_dir(0,0,-1);
 Vec3f camera(0,0,3);
 
+// 4d-->3d
 Vec3f m2v(Matrix m) {
     return Vec3f(m[0][0]/m[3][0], m[1][0]/m[3][0], m[2][0]/m[3][0]);
 }
 
+// 3d-->4d
 Matrix v2m(Vec3f v) {
     Matrix m(4, 1);
     m[0][0] = v.x;
@@ -27,6 +29,7 @@ Matrix v2m(Vec3f v) {
     return m;
 }
 
+// 视角矩阵
 Matrix viewport(int x, int y, int w, int h) {
     Matrix m = Matrix::identity(4);
     m[0][3] = x+w/2.f;
@@ -80,10 +83,9 @@ void triangle(Vec3i t0, Vec3i t1, Vec3i t2,
 }
 
 int main(int argc, char** argv) {
-
     model = new Model("../object/african_head.obj");
-
     zBuffer = new int[width*height];
+
     for (int i=width*height; i--; zBuffer[i] = -std::numeric_limits<float>::max());
 
     { // draw the model
@@ -98,27 +100,28 @@ int main(int argc, char** argv) {
             Vec3f world_coords[3];
             for (int j=0; j<3; j++) {
                 Vec3f v = model->vert(face[j]);
+                // 视角矩阵*投影矩阵*坐标
                 screen_coords[j] =  m2v(ViewPort*Projection*v2m(v));
                 world_coords[j]  = v;
             }
-            Vec3f n = (world_coords[2]-world_coords[0])^(world_coords[1]-world_coords[0]);
-            n.normalize();
+            // 计算法向量并且标准化
+            Vec3f n = ((world_coords[2]-world_coords[0])^(world_coords[1]-world_coords[0])).normalize();
+            // 计算光照
             float intensity = n*light_dir;
             if (intensity>0) {
                 Vec2i uv[3];
                 for (int k=0; k<3; k++) {
                     uv[k] = model->uv(i, k);
                 }
+                // 绘制三角形
                 triangle(screen_coords[0], screen_coords[1], screen_coords[2],
                          uv[0], uv[1], uv[2], image, intensity, zBuffer);
             }
         }
-
         image.flip_vertically();
         image.write_tga_file("output.tga");
     }
-
-    { // dump z-buffer (debugging purposes only)
+    { // 输出zbuffer
         TGAImage zbimage(width, height, TGAImage::GRAYSCALE);
         for (int i=0; i<width; i++) {
             for (int j=0; j<height; j++) {

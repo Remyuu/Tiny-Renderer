@@ -4,12 +4,12 @@
 #include <iostream>
 #include "geometry.h"
 
+// Vec3的模板特化 - 功能是Vec3f四舍五入到Vec3i
 template <> template <> Vec3<int>::Vec3(const Vec3<float> &v) : x(int(v.x+.5)), y(int(v.y+.5)), z(int(v.z+.5)) {
 }
-
+// Vec3的模版特化 - 功能是将Vec3i转化为vec3f
 template <> template <> Vec3<float>::Vec3(const Vec3<int> &v) : x(v.x), y(v.y), z(v.z) {
 }
-
 
 Matrix::Matrix(int r, int c) : m(std::vector<std::vector<float> >(r, std::vector<float>(c, 0.f))), rows(r), cols(c) { }
 
