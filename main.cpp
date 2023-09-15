@@ -82,6 +82,26 @@ void triangle(Vec3i t0, Vec3i t1, Vec3i t2,
     }
 }
 
+Matrix lookAt(Vec3f cameraPos, Vec3f lookAt, Vec3f viewUp){
+    //计算出z，根据z和up算出x，再算出y
+    Vec3f gazeDirection = (cameraPos - lookAt).normalize(); // -z 轴
+    Vec3f horizon = (viewUp ^ gazeDirection).normalize(); // 与相机水平的轴
+    Vec3f vertical = (gazeDirection ^ horizon).normalize(); //
+
+    Matrix rotation = Matrix::identity(4);
+    Matrix translation = Matrix::identity(4);
+    for (int i = 0; i < 3; i++) {
+        rotation[i][3] = - lookAt[i];
+        rotation[0][i] = horizon[i];
+        rotation[1][i] = vertical[i];
+        rotation[2][i] = gazeDirection[i];
+    }
+    //这样乘法的效果是先平移物体，再旋转
+    Matrix res = rotation*translation;
+    return res;
+}
+
+
 int main(int argc, char** argv) {
     model = new Model("../object/african_head.obj");
     zBuffer = new int[width*height];
@@ -89,6 +109,7 @@ int main(int argc, char** argv) {
     for (int i=width*height; i--; zBuffer[i] = -std::numeric_limits<float>::max());
 
     { // draw the model
+        Matrix ModelView  = lookAt(Vec3f(2,1,3), Vec3f(0,0,1), Vec3f(0,1,0));
         Matrix Projection = Matrix::identity(4);
         Matrix ViewPort   = viewport(width/8, height/8, width*3/4, height*3/4);
         Projection[3][2] = -1.f/camera.z;
@@ -101,7 +122,7 @@ int main(int argc, char** argv) {
             for (int j=0; j<3; j++) {
                 Vec3f v = model->vert(face[j]);
                 // 视角矩阵*投影矩阵*坐标
-                screen_coords[j] =  m2v(ViewPort*Projection*v2m(v));
+                screen_coords[j] =  m2v(ViewPort*Projection*ModelView*v2m(v));
                 world_coords[j]  = v;
             }
             // 计算法向量并且标准化
