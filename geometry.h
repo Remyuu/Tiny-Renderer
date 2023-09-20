@@ -11,6 +11,28 @@
 #include <iostream>
 #include <cmath>
 
+/*
+ * MYMATHLIB_GEOMETRY_H: A Generic Vector Library
+ *
+ * This library provides a generic vector template for operations in n-dimensional
+ * space, tailored to support mathematical operations and geometric reasoning.
+ *
+ * Features:
+ *  - N-dimensional vector representation using a single template
+ *  - Basic arithmetic operations such as addition, subtraction, and dot product
+ *  - Scalar multiplication and division
+ *  - Computation of vector magnitude (or length)
+ *  - Vector normalization (conversion to unit vector)
+ *  - Cross product calculation specific to 3-dimensional vectors
+ *  - Overloaded stream operator for easy display and debugging
+ *  - Type aliases for 2D, 3D, and 4D vectors with common data types (int, float, double)
+ *
+ * Notes:
+ *  - When normalizing a zero vector, the original vector is returned.
+ *  - The cross product is implemented specifically for 3-dimensional vectors.
+ *
+ */
+
 template <typename T, int N>
 struct Vec {
     T values[N];
@@ -183,6 +205,84 @@ using Vec4f = Vec<float, 4>;
 using Vec2d = Vec<double, 2>;
 using Vec3d = Vec<double, 3>;
 using Vec4d = Vec<double, 4>;
+
+
+
+
+template <typename T, int Rows, int Cols>
+struct Matrix {
+    T values[Rows][Cols];
+
+    // 默认构造函数
+    Matrix() = default;
+
+    // 使用初始化列表构造矩阵
+    Matrix(const std::initializer_list<std::initializer_list<T>>& list) {
+        int r = 0;
+        for (const auto& rowList : list) {
+            int c = 0;
+            for (const auto& val : rowList) {
+                values[r][c] = val;
+                c++;
+            }
+            r++;
+        }
+    }
+
+    // 访问矩阵元素
+    T& operator()(int row, int col) {
+        return values[row][col];
+    }
+    const T& operator()(int row, int col) const {
+        return values[row][col];
+    }
+
+    // 矩阵加法
+    Matrix operator+(const Matrix& other) const {
+        Matrix result;
+        for (int i = 0; i < Rows; i++) {
+            for (int j = 0; j < Cols; j++) {
+                result(i, j) = values[i][j] + other(i, j);
+            }
+        }
+        return result;
+    }
+
+    // 矩阵与标量的乘法
+    Matrix operator*(T scalar) const {
+        Matrix result;
+        for (int i = 0; i < Rows; i++) {
+            for (int j = 0; j < Cols; j++) {
+                result(i, j) = values[i][j] * scalar;
+            }
+        }
+        return result;
+    }
+
+    // 矩阵与矩阵的乘法
+    template<int NewCols>
+    Matrix<T, Rows, NewCols> operator*(const Matrix<T, Cols, NewCols>& other) const {
+        Matrix<T, Rows, NewCols> result;
+        for (int i = 0; i < Rows; i++) {
+            for (int j = 0; j < NewCols; j++) {
+                T sum = 0;
+                for (int k = 0; k < Cols; k++) {
+                    sum += values[i][k] * other(k, j);
+                }
+                result(i, j) = sum;
+            }
+        }
+        return result;
+    }
+};
+
+
+
+
+
+
+
+
 
 
 #endif //MYMATHLIB_GEOMETRY_H
