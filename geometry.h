@@ -171,7 +171,6 @@ Vec<T, N> Vec<T, N>::normalize() const {
     return result;
 }
 
-
 // 为 Vec2、Vec3、Vec4 等提供类型别名
 using Vec2i = Vec<int, 2>;
 using Vec3i = Vec<int, 3>;
