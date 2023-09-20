@@ -9,6 +9,7 @@
 #pragma once
 
 #include <iostream>
+#include <cmath>
 
 template <typename T, int N>
 struct Vec {
@@ -22,15 +23,39 @@ struct Vec {
     T& operator[](int index);
     const T& operator[](int index) const;
 
-    Vec<T, N> operator+(const Vec<T, N>& other) const;
-    Vec<T, N> operator-(const Vec<T, N>& other) const;
-    T dot(const Vec<T, N>& other) const;
+    [[nodiscard]] Vec<T, N> operator+(const Vec<T, N>& other) const;// 向量间加法
+    [[nodiscard]] Vec<T, N> operator-(const Vec<T, N>& other) const;// 向量间减法
+    [[nodiscard]] Vec<T, N> operator*(T scalar) const;// 向量与常数乘法
+    [[nodiscard]] Vec<T, N> operator/(T scalar) const;// 向量与常数除法
+    [[nodiscard]] T dot(const Vec<T, N>& other) const;
+
+    [[nodiscard]] double magnitude() const;// 向量模长
+    [[nodiscard]] Vec<T, N> normalize() const;// 向量单位化
+
+    // 流传输功能
+    template <typename U, int M>
+    friend std::ostream& operator<<(std::ostream& os, const Vec<U, N>& vec);
 
     // 叉积仅对3D向量有效
     template<int M = N>
     typename std::enable_if<M == 3, Vec<T, 3>>::type cross(const Vec<T, 3>& other) const;
 };
 
+// 定义友元函数
+template <typename U, int M>
+std::ostream& operator<<(std::ostream& os, const Vec<U, M>& vec) {
+    os << "(";
+    for(int i = 0; i < M; i++) {
+        os << vec[i];
+        if (i < M - 1) {
+            os << ", ";
+        }
+    }
+    os << ")";
+    return os;
+}
+
+// 折叠表达式构造多传参函数
 template <typename T, int N>
 template<typename... Args>
 Vec<T, N>::Vec(Args... args) : values{args...} {
@@ -88,6 +113,26 @@ T Vec<T, N>::dot(const Vec<T, N>& other) const {
     return sum;
 }
 
+// 实现标量与向量的乘
+template <typename T, int N>
+Vec<T, N> Vec<T, N>::operator*(T scalar) const {
+    Vec<T, N> result;
+    for(int i = 0; i < N; i++) {
+        result[i] = values[i] * scalar;
+    }
+    return result;
+}
+
+// 实现标量与向量的除法
+template <typename T, int N>
+Vec<T, N> Vec<T, N>::operator/(T scalar) const {
+    Vec<T, N> result;
+    for(int i = 0; i < N; i++) {
+        result[i] = values[i] / scalar;
+    }
+    return result;
+}
+
 // 实现了Vec3的叉积运算
 template <typename T, int N>
 template<int M>
@@ -98,6 +143,33 @@ typename std::enable_if<M == 3, Vec<T, 3>>::type Vec<T, N>::cross(const Vec<T, 3
             values[0] * other[1] - values[1] * other[0]
     );
 }
+
+// 实现求模长
+template <typename T, int N>
+double Vec<T, N>::magnitude() const {
+    T sum = 0;
+    for(int i = 0; i < N; i++) {
+        sum += values[i] * values[i];
+    }
+    return std::sqrt(sum);
+}
+
+template <typename T, int N>
+Vec<T, N> Vec<T, N>::normalize() const {
+    T mag = magnitude();
+    if(mag == 0) {
+        // 不能单位化一个零向量，此处可以抛出异常或返回原向量
+        // 为简化，此处返回原向量
+        return *this;
+    }
+
+    Vec<T, N> result;
+    for(int i = 0; i < N; i++) {
+        result[i] = values[i] / mag;
+    }
+    return result;
+}
+
 
 // 为 Vec2、Vec3、Vec4 等提供类型别名
 using Vec2i = Vec<int, 2>;
