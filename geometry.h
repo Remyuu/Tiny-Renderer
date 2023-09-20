@@ -41,6 +41,7 @@ struct Vec {
     typename std::enable_if<M == 3, Vec<T, 3>>::type cross(const Vec<T, 3>& other) const;
 };
 
+// 流传输功能
 template <typename U, int M>
 std::ostream& operator<<(std::ostream& os, const Vec<U, M>& vec) {
     os << "(";
