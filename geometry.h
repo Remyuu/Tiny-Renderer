@@ -154,6 +154,7 @@ double Vec<T, N>::magnitude() const {
     return std::sqrt(sum);
 }
 
+// 单位化向量
 template <typename T, int N>
 Vec<T, N> Vec<T, N>::normalize() const {
     T mag = magnitude();
