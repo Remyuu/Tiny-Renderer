@@ -5,8 +5,8 @@
  * @brief 提供用于表示和操作矩阵(Matrix)和向量(Vec)的模板类。
  */
 
-#ifndef MYMATHLIB_GEOMETRY_H
-#define MYMATHLIB_GEOMETRY_H
+#ifndef GEOMETRY_H
+#define GEOMETRY_H
 
 // geometry.h
 #pragma once
@@ -138,7 +138,13 @@ struct Vec {
     template<int M = N>
     typename std::enable_if<M == 3, Vec<T, 3>>::type cross(const Vec<T, 3>& other) const;
 
-
+    /**
+     * @brief 可以将已有的 `Vec_U` 对象构造 `Vec_T`。
+     * 四舍五入的。
+     *
+     * @param Vec<U, N> other 待转换的向量
+     * @return 新类型的向量。
+     */
     template <typename U>
     explicit Vec<T, N>(const Vec<U, N>& other);
 };
@@ -159,9 +165,16 @@ std::ostream& operator<<(std::ostream& os, const Vec<U, M>& vec) {
 }
 
 // 折叠表达式构造多传参函数
+//template <typename T, int N>
+//template<typename... Args>
+//Vec<T, N>::Vec(Args... args) : values{args...} {
+//    static_assert(sizeof...(args) == N, "Wrong number of arguments");
+//}
+
+// 更通用的构造函数 比如你可以这样构造函数 Vec2f v(1,2);
 template <typename T, int N>
-template<typename... Args>
-Vec<T, N>::Vec(Args... args) : values{args...} {
+template <typename... Args>
+Vec<T, N>::Vec(Args... args) : values{static_cast<T>(args)...} {
     static_assert(sizeof...(args) == N, "Wrong number of arguments");
 }
 
@@ -274,6 +287,7 @@ Vec<T, N> Vec<T, N>::normalize() const {
     return result;
 }
 
+// 将已有的 `Vec_U` 对象构造 `Vec_T`
 template <typename T, int N>
 template <typename U>
 Vec<T, N>::Vec(const Vec<U, N>& other) {
@@ -281,8 +295,6 @@ Vec<T, N>::Vec(const Vec<U, N>& other) {
         values[i] = static_cast<T>(std::round(other[i]));
     }
 }
-
-
 
 // 为 Vec2、Vec3、Vec4 等提供类型别名
 using Vec2i = Vec<int, 2>;
@@ -464,16 +476,16 @@ std::ostream& operator<<(std::ostream& os, const Matrix<T, Rows, Cols>& matrix) 
 }
 
 // 为 Mat2、Mat3、Mat4 等提供类型别名
-using Vec2i = Vec<int, 2>;
-using Vec3i = Vec<int, 3>;
-using Vec4i = Vec<int, 4>;
+using Matrix2i = Matrix<int   , 2, 2>;
+using Matrix3i = Matrix<int   , 3, 3>;
+using Matrix4i = Matrix<int   , 4, 4>;
 
-using Vec2f = Vec<float, 2>;
-using Vec3f = Vec<float, 3>;
-using Vec4f = Vec<float, 4>;
+using Matrix2f = Matrix<float , 2, 2>;
+using Matrix3f = Matrix<float , 3, 3>;
+using Matrix4f = Matrix<float , 4, 4>;
 
-using Vec2d = Vec<double, 2>;
-using Vec3d = Vec<double, 3>;
-using Vec4d = Vec<double, 4>;
+using Matrix2d = Matrix<double, 2, 2>;
+using Matrix3d = Matrix<double, 3, 3>;
+using Matrix4d = Matrix<double, 4, 4>;
 
-#endif //MYMATHLIB_GEOMETRY_H
+#endif GEOMETRY_H
