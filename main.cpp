@@ -2,7 +2,6 @@
 #include <iostream>
 
 int main() {
-    // 使用整数向量测试
     Vec3f v3(1.0f, 2.0f, 3.0f);
     Vec3f v4(2.0f, 3.0f, 4.0f);
     float scalar = 2;
@@ -23,6 +22,7 @@ int main() {
     std::cout << "|v3| = "; v3.normalize().print();
 
     std::cout << "(Using OS Test)v3.Normalize = " << v3.normalize() << std::endl;
+
 
 
     return 0;
