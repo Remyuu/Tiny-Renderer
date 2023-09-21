@@ -137,6 +137,10 @@ struct Vec {
      */
     template<int M = N>
     typename std::enable_if<M == 3, Vec<T, 3>>::type cross(const Vec<T, 3>& other) const;
+
+
+    template <typename U>
+    explicit Vec<T, N>(const Vec<U, N>& other);
 };
 
 
@@ -269,6 +273,16 @@ Vec<T, N> Vec<T, N>::normalize() const {
     }
     return result;
 }
+
+template <typename T, int N>
+template <typename U>
+Vec<T, N>::Vec(const Vec<U, N>& other) {
+    for(int i = 0; i < N; ++i) {
+        values[i] = static_cast<T>(std::round(other[i]));
+    }
+}
+
+
 
 // 为 Vec2、Vec3、Vec4 等提供类型别名
 using Vec2i = Vec<int, 2>;
