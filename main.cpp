@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 //    if (2==argc) {
 //        model = new Model(argv[1]);
 //    } else {
-        model = new Model("../object/african_head.obj");
+        model = new Model("../object/african_head/african_head.obj");
 //    }
 
     lookat(eye, center, up);
