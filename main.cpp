@@ -37,7 +37,8 @@ struct Shader : public IShader {
         Vec4f sb_p = uniform_Mshadow*embed<4>(varying_tri*bar); // corresponding point in the shadow buffer
         sb_p = sb_p/sb_p[3];
         int idx = int(sb_p[0]) + int(sb_p[1])*width; // index in the shadowbuffer array
-        float shadow = .3+.7*(shadowbuffer[idx]<sb_p[2]); // magic coeff to avoid z-fighting
+//        float shadow = .3+.7*(shadowbuffer[idx]<sb_p[2]); // magic coeff to avoid z-fighting
+        float shadow = .3+.7*(shadowbuffer[idx]<sb_p[2]+43.34); // magic coeff to avoid z-fighting
         Vec2f uv = varying_uv*bar;                 // interpolate uv for the current pixel
         Vec3f n = proj<3>(uniform_MIT*embed<4>(model->normal(uv))).normalize(); // normal
         Vec3f l = proj<3>(uniform_M  *embed<4>(light_dir        )).normalize(); // light vector
@@ -76,7 +77,7 @@ int main(int argc, char** argv) {
         zbuffer[i] = shadowbuffer[i] = -std::numeric_limits<float>::max();
     }
 
-    model = new Model("../object/african_head/african_head.obj");
+    model = new Model("../object/diablo3_pose/diablo3_pose.obj");
     light_dir.normalize();
 
     { // rendering the shadow buffer
