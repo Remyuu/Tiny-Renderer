@@ -21,4 +21,3 @@ struct IShader {
 void triangle(Vec4f *pts, IShader &shader, TGAImage &image, TGAImage &zbuffer);
 
 #endif //__OUR_GL_H__
-
