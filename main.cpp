@@ -34,31 +34,31 @@ Vec3f        up(0,1,0);
 //    }
 //};
 
+
 struct Blinn_Phong_Shader : public IShader {
-    mat<2,3,float> varying_uv;  // same as above
-    mat<4,4,float> uniform_M;   //  Projection*ModelView
-    mat<4,4,float> uniform_MIT; // (Projection*ModelView).invert_transpose()
+        mat<2,3,float> varying_uv;  // same as above
+        mat<4,4,float> uniform_M;   //  Projection*ModelView
+        mat<4,4,float> uniform_MIT; // (Projection*ModelView).invert_transpose()
 
-    Vec4f vertex(int iface, int nthvert) override {
-        varying_uv.set_col(nthvert, model->uv(iface, nthvert));
-        Vec4f gl_Vertex = embed<4>(model->vert(iface, nthvert)); // read the vertex from .obj file
-        return Viewport*Projection*ModelView*gl_Vertex; // transform it to screen coordinates
-    }
-    bool fragment(Vec3f bar, TGAColor &color) override {
-        Vec2f uv = varying_uv*bar;
-        Vec3f n = proj<3>(uniform_MIT*embed<4>(model->normal(uv))).normalize(); // normal
-        Vec3f l = proj<3>(uniform_M  *embed<4>(light_dir        )).normalize(); // light direction
-        Vec3f v = Vec3f(0, 0, -1); // simplified view direction
-        Vec3f h = (l + v).normalize(); // halfway vector
+        virtual Vec4f vertex(int iface, int nthvert) {
+            varying_uv.set_col(nthvert, model->uv(iface, nthvert));
+            Vec4f gl_Vertex = embed<4>(model->vert(iface, nthvert)); // read the vertex from .obj file
+            return Viewport*Projection*ModelView*gl_Vertex; // transform it to screen coordinates
+        }
 
-        float spec = pow(std::max(0.f, n*h), model->specular(uv));
-        float diff = std::max(0.f, n*l);
-        TGAColor c = model->diffuse(uv);
-        color = c;
-        for (int i=0; i<3; i++) color[i] = std::min<float>(5 + c[i]*(diff + .6*spec), 255);
-        return false;
-    }
-};
+        virtual bool fragment(Vec3f bar, TGAColor &color) {
+            Vec2f uv = varying_uv*bar;
+            Vec3f n = proj<3>(uniform_MIT*embed<4>(model->normal(uv))).normalize();
+            Vec3f l = proj<3>(uniform_M  *embed<4>(light_dir        )).normalize();
+            Vec3f r = (n*(n*l*2.f) - l).normalize();   // reflected light
+            float spec = pow(std::max(r.z, 0.0f), model->specular(uv));
+            float diff = std::max(0.f, n*l);
+            TGAColor c = model->diffuse(uv);
+            color = c;
+            for (int i=0; i<3; i++) color[i] = std::min<float>(5 + c[i]*(diff + .6*spec), 255);
+            return false;
+        }
+    };
 
 struct GouraudShader : public IShader {
     Vec3f varying_intensity; // written by vertex shader, read by fragment shader
