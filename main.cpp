@@ -18,13 +18,13 @@ Vec3f    center(0,0,0);
 Vec3f        up(0,1,0);
 
 struct Shader : public IShader {
-    mat<4,4,float> uniform_M;   //  Projection*ModelView
-    mat<4,4,float> uniform_MIT; // (Projection*ModelView).invert_transpose()
-    mat<4,4,float> uniform_Mshadow; // transform framebuffer screen coordinates to shadowbuffer screen coordinates
-    mat<2,3,float> varying_uv;  // triangle uv coordinates, written by the vertex shader, read by the fragment shader
-    mat<3,3,float> varying_tri; // triangle coordinates before Viewport transform, written by VS, read by FS
+    Matrix4f uniform_M;   //  Projection*ModelView
+    Matrix4f uniform_MIT; // (Projection*ModelView).invert_transpose()
+    Matrix4f uniform_Mshadow; // transform framebuffer screen coordinates to shadowbuffer screen coordinates
+    Matrix<float, 2,3> varying_uv;  // triangle uv coordinates, written by the vertex shader, read by the fragment shader
+    Matrix3f varying_tri; // triangle coordinates before Viewport transform, written by VS, read by FS
 
-    Shader(Matrix M, Matrix MIT, Matrix MS) : uniform_M(M), uniform_MIT(MIT), uniform_Mshadow(MS), varying_uv(), varying_tri() {}
+    Shader(Matrix4f M, Matrix4f MIT, Matrix4f MS) : uniform_M(M), uniform_MIT(MIT), uniform_Mshadow(MS), varying_uv(), varying_tri() {}
 
     Vec4f vertex(int iface, int nthvert) override {
         varying_uv.set_col(nthvert, model->uv(iface, nthvert));
