@@ -26,14 +26,14 @@ struct Shader : public IShader {
 
     Shader(Matrix M, Matrix MIT, Matrix MS) : uniform_M(M), uniform_MIT(MIT), uniform_Mshadow(MS), varying_uv(), varying_tri() {}
 
-    virtual Vec4f vertex(int iface, int nthvert) {
+    Vec4f vertex(int iface, int nthvert) override {
         varying_uv.set_col(nthvert, model->uv(iface, nthvert));
         Vec4f gl_Vertex = Viewport*Projection*ModelView*embed<4>(model->vert(iface, nthvert));
         varying_tri.set_col(nthvert, proj<3>(gl_Vertex/gl_Vertex[3]));
         return gl_Vertex;
     }
 
-    virtual bool fragment(Vec3f bar, TGAColor &color) {
+    bool fragment(Vec3f bar, TGAColor &color) override {
         Vec4f sb_p = uniform_Mshadow*embed<4>(varying_tri*bar); // corresponding point in the shadow buffer
         sb_p = sb_p/sb_p[3];
         int idx = int(sb_p[0]) + int(sb_p[1])*width; // index in the shadowbuffer array
@@ -70,11 +70,6 @@ struct DepthShader : public IShader {
 };
 
 int main(int argc, char** argv) {
-//    if (2>argc) {
-//        std::cerr << "Usage: " << argv[0] << "obj/model.obj" << std::endl;
-//        return 1;
-//    }
-
     float *zbuffer = new float[width*height];
     shadowbuffer   = new float[width*height];
     for (int i=width*height; --i; ) {
